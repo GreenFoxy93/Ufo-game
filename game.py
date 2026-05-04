@@ -12,23 +12,33 @@ pygame.display.set_caption("UFO")
 gameover = False
 gameoverImage = pygame.image.load("gameover.png")
 gameoverImage = pygame.transform.scale(gameoverImage, (windowWidth, windowHeight))
-level1 = pygame.image.load("levelone.png")
-level2 = pygame.image.load("leveltwo.png")
-level3 = pygame.image.load("finallevel.png")
+meteor_speed = 5
 
+font = pygame.font.SysFont(None, 50)
+font2 = pygame.font.SysFont(None, 100)
 
 backgroundImage = pygame.image.load("space.jpg")
 backgroundImage = pygame.transform.scale(backgroundImage, (windowWidth, windowHeight))
 meteors = []
+levels = ["Level 1", "Level 2", "Final level"]
+facts = [
+    "It would take nine years to walk to the moon.",
+    "A day on Venus is longer than a year.",
+    "There are more stars than grains of sand.",
+    "Black holes can bend time.",
+    ]
+
 spawntimer = 0
 leveltimer = 0
+current_fact = random.choice(facts)
+
 
 
 class Player:
     def __init__(self, x, y, image, up, left, right, width, height):
         self.position = pygame.Rect(x, y, width, height)
-       # self.image = pygame.image.load(image)
-       # self.image = pygame.transform.scale(self.image, (width, height))
+        self.image = pygame.image.load(image)
+        self.image = pygame.transform.scale(self.image, (width, height))
         self.speedX = 0
         self.speedY = 0 
         self.up = up
@@ -56,23 +66,13 @@ class Player:
         if self.position.y > windowHeight - self.position.height:
             self.position.y = windowHeight - self.position.height
 
-    def __str__(self):
-        return f"{self.position.x} {self.position.y} {self.position.width} {self.position.height}"
-
 class Meteor:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
         self.image = pygame.image.load(image)
         self.image = pygame.transform.scale(self.image, (width, height))
-    def __str__(self):
-        return f"{self.position.x} {self.position.y} {self.position.width} {self.position.height}"
 
-
-    
-
-    
-
-ufo = Player(1000, 900, "ufo.png", pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, 200, 200)
+ufo = Player(1000, 900, "ufo.png", pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, 100, 100)
 
 
 clock = pygame.time.Clock()
@@ -83,34 +83,39 @@ while running:
             running = False
 
     for i in range(len(meteors)):
-        meteors[i].position.y += 5 
+        meteors[i].position.y += meteor_speed
 
     window.blit(backgroundImage, (0, 0))
     ufo.move()
 
     spawntimer += 1
     leveltimer += 1
-
+    meteor_speed += 0.002 
 
     if 0 < leveltimer < 1000:
-        if spawntimer > 50:  
-                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 100, 100))
+        level = font2.render(levels[0], True, (255, 144, 144))
+        window.blit(level, (10, 10))
+        if spawntimer > 15:  
+                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 50, 50))
                 spawntimer = 0 
-                window.blit(level1, (0, 0))
+
     elif 1000 < leveltimer < 2500:
-         if spawntimer > 30:  
-                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 100, 100))
+         level = font2.render(levels[1], True, (255, 82, 82))
+         window.blit(level, (10, 10)) 
+         if spawntimer > 5: 
+                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 50, 50))
                 spawntimer = 0
-                window.blit(level2, (0, 0))
     elif 2500 < leveltimer:
-        if spawntimer > 10:  
-                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 100, 100))
+        level = font2.render(levels[2], True, (255, 16, 16))
+        window.blit(level, (10, 10))
+        if spawntimer > 2:  
+                meteors.append(Meteor(random.randint(0, 1650), 0, "meteor.png", 50, 50))
                 spawntimer = 0
-                window.blit(level3, (0, 0))
+                
+
   
     
-    #window.blit(ufo.image, ufo.position)
-    window.fill("#fc0303", ufo)
+    window.blit(ufo.image, ufo.position)
 
 
     for i in range(len(meteors)):
@@ -123,6 +128,10 @@ while running:
 
     if gameover == True:
         window.blit(gameoverImage, (0, 0))
+        randomfact = font.render(current_fact, True, (255, 255, 255))
+        window.blit(randomfact, (10, 10))
+
+    
  
     pygame.display.update()
     clock.tick(60)
