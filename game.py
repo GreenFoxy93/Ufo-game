@@ -282,7 +282,7 @@ while running:
                 highscore = score
             window.blit(gameoverImage, (0, 0))
             #window.blit(unlocked, (10, 500))
-            window.blit(endofgame, (600, 770))
+            window.blit(endofgame, (530, 770))
             window.blit(randomfact, (10, 10))
             window.blit(scr, (10, 70))
             window.blit(highscr, (10, 110))
