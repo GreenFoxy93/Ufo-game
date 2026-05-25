@@ -1,4 +1,4 @@
-#BlockingIOError
+BlockingIOError
 import pygame
 import random
 
@@ -23,6 +23,13 @@ backgroundImage = pygame.image.load("space.jpg")
 backgroundImage = pygame.transform.scale(backgroundImage, (windowWidth, windowHeight))
 startImage = pygame.image.load("startbackground.png")
 startImage = pygame.transform.scale(startImage, (windowWidth, windowHeight))
+meteor_img = pygame.image.load("meteor.png")
+meteor2_img = pygame.image.load("meteor2.png")
+meteor4_img = pygame.image.load("meteor4.png")
+ufo_img = pygame.image.load("ufo.png")
+flash_img = pygame.image.load("flash.png")
+shield_img = pygame.image.load("shield.png")
+
 
 images = ["meteor.png", "meteor2.png", "meteor4.png", "ufo.png"]
 meteors = []
@@ -47,8 +54,9 @@ meteor_speed = 5
 spawntimer = 0
 forfun = 0
 leveltimer = 0
+shieldtimer = 0
 flashtimer = 0
-protectiontimer = 500
+protectiontimer = 300
 speedtimer = 600
 current_fact = random.choice(facts)
 #facts.remove(current_fact)
@@ -72,7 +80,7 @@ enterpress = font3.render(pressenter, True, (0, 200, 255))
 class Player:
     def __init__(self, x, y, image, up, left, right, width, height, speed):
         self.position = pygame.Rect(x, y, width, height)
-        self.image = pygame.image.load(image)
+        self.image = image
         self.image = pygame.transform.scale(self.image, (width, height))
         self.speed = speed
         self.speedX = 0
@@ -80,6 +88,8 @@ class Player:
         self.up = up
         self.left = left
         self.right = right
+        self.protection = False
+        
 
     def move(self):
         keys = pygame.key.get_pressed()
@@ -105,12 +115,12 @@ class Player:
 class Meteor:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
-        self.image = pygame.image.load(image)
+        self.image = image
         self.image = pygame.transform.scale(self.image, (width, height))
 class Powerup:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
-        self.image = pygame.image.load(image)
+        self.image = image
         self.image = pygame.transform.scale(self.image, (width, height))
 class Justforfun:
     def __init__(self, x, y, image, width, height):
@@ -140,7 +150,16 @@ class Justforfun:
         if self.position.y > windowHeight - self.position.height:
             self.speedy *= -1
 
-ufo = Player(500, 900, "ufo.png", pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, 100, 100, 15)
+ufo = Player(500, 900, ufo_img, pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, 100, 100, 15)
+
+def spawnmeteors():
+            randomnumber = random.randint(1, 3)
+            if randomnumber == 1:
+                meteors.append(Meteor(random.randint(-20, 1350), -100, meteor_img, size2, size2))
+            elif randomnumber == 2:
+                meteors.append(Meteor(random.randint(-20, 1350), -100, meteor2_img, size2, size2))
+            elif randomnumber == 3:
+                meteors.append(Meteor(random.randint(-20, 1350), -100, meteor4_img, size2, size2))
 
 #glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka#
 clock = pygame.time.Clock()
@@ -171,6 +190,7 @@ while running:
                 state = "game"
                 meteors = []
                 flashes = []
+                shields = []
                 ufo.speed = 15
                 spawntimer = 0
                 leveltimer = 0
@@ -200,31 +220,28 @@ while running:
         spawntimer += 1
         leveltimer += 1
         flashtimer += 1
+        shieldtimer += 1
         meteor_speed += 0.004
         score += 1
         randomfact = font.render(current_fact, True, (255, 155, 155))
         speedtimerforscreen = f"Speed time left: {speedtimer}"
+        protectiontimerforscreen = f"Protection time left: {protectiontimer}"
         factsunlocked = f"Facts unlocked: {factnumber}/8"
         scoreboard = f"Score: {score}"
         highscoreboard = f"Highscore: {highscore}"
         size = random.randint(30, 150)
         size2 = random.randint(100, 200)
         size3 = random.randint(25, 70)
-        randomnumber = random.randint(1, 3)
-
-        def spawnmeteors():
-            if randomnumber == 1:
-                meteors.append(Meteor(random.randint(-20, 1350), -100, "meteor.png", size2, size2))
-            elif randomnumber == 2:
-                meteors.append(Meteor(random.randint(-20, 1350), -100, "meteor4.png", size2, size2))
-            elif randomnumber == 3:
-                meteors.append(Meteor(random.randint(-20, 1350), -100, "meteor2.png", size2, size2))
+        
             
-        for i in range(len(meteors)):
-            meteors[i].position.y += meteor_speed
+        for meteor in meteors:
+            meteor.position.y += meteor_speed
 
-        for i in range(len(flashes)):
-            flashes[i].position.y += meteor_speed
+        for flash in flashes:
+            flash.position.y += meteor_speed
+
+        for shield in shields:
+            shield.position.y += meteor_speed
 
         window.blit(backgroundImage, (0, 0))
         ufo.move()
@@ -234,8 +251,8 @@ while running:
         if keys[pygame.K_r]:
                 current_fact = random.choice(facts)
 
-        for i in range(len(meteors)):
-            window.blit(meteors[i].image, meteors[i].position)
+        for meteor in meteors:
+            window.blit(meteor.image, meteor.position)
 
         if 0 < leveltimer < 1000:
             level = font2.render(levels[0], True, (255, 144, 144))
@@ -261,15 +278,20 @@ while running:
         highscr = font.render(highscoreboard, True, (255, 255, 255))
         window.blit(highscr, (1000, 50))
         unlocked = font.render(factsunlocked, True, (255, 255, 255))
-        speedtimeronscreen = font.render(speedtimerforscreen, True, (150, 255, 100))
+        speedtimeronscreen = font.render(speedtimerforscreen, True, (250, 250, 150))
+        protectiontimeronscreen = font.render(protectiontimerforscreen, True, (150, 250, 250))
 
         # flash settings
         if random.randint(300, 1000) < flashtimer:
-            flashes.append(Powerup(random.randint(-20, 1350), -100, "flash.png", 100, 100))
+            flashes.append(Powerup(random.randint(-20, 1350), -100, flash_img, 100, 100))
             flashtimer = 0
 
+        if random.randint(300, 3000) < shieldtimer:
+            shields.append(Powerup(random.randint(-20, 1350), -100, shield_img, 200, 200))
+            shieldtimer = 0
+
         if ufo.speed > 15:
-            window.blit(speedtimeronscreen, (1000, 90))
+            window.blit(speedtimeronscreen, (10, 90))
             speedtimer -= 1
     
         for flash in flashes[:]:
@@ -278,16 +300,38 @@ while running:
                 speedtimer = 500
                 flashes.remove(flash)
 
+        for shield in shields[:]:
+            if ufo.position.colliderect(shield.position):
+                protectiontimer = 300
+                shields.remove(shield)
+                ufo.protection = True
+
+        if ufo.protection == True:
+            protectiontimer -= 1
+            if ufo.speed > 15:
+                window.blit(protectiontimeronscreen, (10, 150))
+            else:
+                window.blit(protectiontimeronscreen, (10, 90))
+        
+        if protectiontimer <= 0:
+            ufo.protection = False
+
         if speedtimer == 0:
             ufo.speed = 15
             speedtimer = 500
                     
-        for i in range(len(flashes)):
-            window.blit(flashes[i].image, flashes[i].position)
+        for flash in flashes:
+            window.blit(flash.image, flash.position)
+
+        for shield in shields:
+            window.blit(shield.image, shield.position)
             
-        for j in range(len(meteors)):
-            if ufo.position.colliderect(meteors[j].position):
-                state = "gameover"
+        for meteor in meteors:
+            if ufo.position.colliderect(meteor.position):
+                if protectiontimer > 0:
+                    pass
+                else:
+                    state = "gameover"
 
         if state == "gameover": 
             if score > highscore:
