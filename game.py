@@ -1,12 +1,12 @@
-BlockingIOError
+#BlockingIOError
 import pygame
 import random
 
 pygame.init()
 
 # all the window settings. do not touch
-windowWidth = 1650
-windowHeight = 900
+windowWidth = 1350
+windowHeight = 750
 window = pygame.display.set_mode((windowWidth, windowHeight))
 pygame.display.set_caption("UFO")
 
@@ -41,9 +41,7 @@ facts = [
     "The International Space Station orbits Earth every ~90 minutes."
     ]
 
-
-start = False
-gameover = False
+state = "menu"
 
 meteor_speed = 5
 spawntimer = 0
@@ -54,21 +52,23 @@ protectiontimer = 500
 speedtimer = 600
 current_fact = random.choice(facts)
 #facts.remove(current_fact)
-highscore = 0
 score = 0
 factnumber = 1
 pressr = "Press 'r' to restart"
-game = "THE UFO GAME"
+gametitle = "THE UFO GAME"
 pressenter = "Press 'space' to start"
 speed = False
+try:
+    with open("highscore.txt", "r") as file:
+        highscore = int(file.read())
+except:
+    highscore = 0
 
-
-beginning = font.render(game, True, (255, 255, 255))
+beginning = font.render(gametitle, True, (255, 255, 255))
 enter = font.render(pressenter, True, (255, 255, 255))
 endofgame = font3.render(pressr, True, (150, 255, 255))
-theufogame = font4.render(game, True, (200, 200, 255))
+theufogame = font4.render(gametitle, True, (200, 200, 255))
 enterpress = font3.render(pressenter, True, (0, 200, 255))
-
 class Player:
     def __init__(self, x, y, image, up, left, right, width, height, speed):
         self.position = pygame.Rect(x, y, width, height)
@@ -102,19 +102,16 @@ class Player:
             self.position.y = 0
         if self.position.y > windowHeight - self.position.height:
             self.position.y = windowHeight - self.position.height
-
 class Meteor:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
         self.image = pygame.image.load(image)
         self.image = pygame.transform.scale(self.image, (width, height))
-
 class Powerup:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
         self.image = pygame.image.load(image)
         self.image = pygame.transform.scale(self.image, (width, height))
-
 class Justforfun:
     def __init__(self, x, y, image, width, height):
         self.position = pygame.Rect(x, y, width, height)
@@ -123,14 +120,16 @@ class Justforfun:
         self.speedx = random.randint(-3, 3)
         self.speedy = random.randint(-3, 3)
         if self.speedx == 0:
-            self.speedx = random.randint(-3, 3)
+            self.speedx = random.uniform(-3, 3)
         if self.speedy == 0:
-            self.speedy = random.randint(-3, 3)
+            self.speedy = random.uniform(-3, 3)
 
     def startmoving(self):
-        
-        self.position.x += self.speedx
-        self.position.y += self.speedy
+        self.realspeedx = int(self.speedx)
+        self.realspeedy = int(self.speedy)
+
+        self.position.x += self.realspeedx
+        self.position.y += self.realspeedy
 
         if self.position.x < 0:
             self.speedx *= -1
@@ -141,7 +140,6 @@ class Justforfun:
         if self.position.y > windowHeight - self.position.height:
             self.speedy *= -1
 
-
 ufo = Player(500, 900, "ufo.png", pygame.K_UP, pygame.K_LEFT, pygame.K_RIGHT, 100, 100, 15)
 
 #glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka##glavna zanka#
@@ -151,44 +149,64 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if event.type == pygame.KEYDOWN:
+            if state == "menu" and event.key == pygame.K_SPACE:
+                state = "game"
+
+            if event.key == pygame.K_ESCAPE:
+                state = "menu"
+                meteors.clear()
+                flashes.clear()
+
+                spawntimer = 0
+                leveltimer = 0
+                flashtimer = 0
+
+                ufo.speed = 15
+                meteor_speed = 5 
+                score = 0
+                
+            if state == "gameover" and event.key == pygame.K_r:
+                state = "game"
+                meteors = []
+                flashes = []
+                ufo.speed = 15
+                spawntimer = 0
+                leveltimer = 0
+                meteor_speed = 5
+                ufo.position.x = 1000
+                ufo.position.y = 900
+                score = 0
+                speedtimer = 500
     
-    menu = True
-    window.blit(startImage, (0, 0))
+    if state == "menu":
+        window.blit(startImage, (0, 0))
+        forfun += 1
+        if forfun == 20:
+            if len(startscreen) <= 50:
+                sizehere = random.randint(50, 200)
+                startscreen.append(Justforfun(random.randint(0, (windowWidth - (sizehere + 10))), random.randint(0, (windowHeight - (sizehere + 10))), random.choice(images), sizehere, sizehere))
+            forfun = 0
 
-    forfun += 1
-    if forfun == 20:
-        if len(startscreen) <= 50:
-            startscreen.append(Justforfun(random.randint(0, (windowWidth - 100)), random.randint(0, (windowHeight - 100)), random.choice(images), 100, 100))
-        forfun = 0
+        for i in range(len(startscreen)):
+            window.blit(startscreen[i].image, startscreen[i].position)
+            startscreen[i].startmoving()
 
-
-    for i in range(len(startscreen)):
-        window.blit(startscreen[i].image, startscreen[i].position)
-        startscreen[i].startmoving()
-
-    window.blit(theufogame, (10, 600))
-    window.blit(enterpress, (20, 800))
-
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_SPACE]:
-        start = True
+        window.blit(theufogame, (10, 400)) 
+        window.blit(enterpress, (20, 600)) 
     
-    if start == True:
-
-        #window.blit(backgroundImage, (0, 0))
-        window.blit(beginning, (500, 500))
-        window.blit(enter, (500, 600))
-
+    if state == "game":
         spawntimer += 1
         leveltimer += 1
         flashtimer += 1
         meteor_speed += 0.004
         score += 1
+        randomfact = font.render(current_fact, True, (255, 155, 155))
         speedtimerforscreen = f"Speed time left: {speedtimer}"
         factsunlocked = f"Facts unlocked: {factnumber}/8"
         scoreboard = f"Score: {score}"
         highscoreboard = f"Highscore: {highscore}"
-        randomfact = font.render(current_fact, True, (255, 155, 155))
         size = random.randint(30, 150)
         size2 = random.randint(100, 200)
         size3 = random.randint(25, 70)
@@ -202,8 +220,6 @@ while running:
             elif randomnumber == 3:
                 meteors.append(Meteor(random.randint(-20, 1350), -100, "meteor2.png", size2, size2))
             
-        
-
         for i in range(len(meteors)):
             meteors[i].position.y += meteor_speed
 
@@ -214,7 +230,7 @@ while running:
         ufo.move()
         window.blit(ufo.image, ufo.position)
 
-        keys = pygame.key.get_pressed()
+        keys = pygame.key.get_pressed() 
         if keys[pygame.K_r]:
                 current_fact = random.choice(facts)
 
@@ -240,26 +256,22 @@ while running:
                     spawnmeteors()
                     spawntimer = 0
 
-        
-
         scr = font.render(scoreboard, True, (255, 255, 255))
-        window.blit(scr, (1300, 10))
+        window.blit(scr, (1000, 10))
         highscr = font.render(highscoreboard, True, (255, 255, 255))
-        window.blit(highscr, (1300, 50))
+        window.blit(highscr, (1000, 50))
         unlocked = font.render(factsunlocked, True, (255, 255, 255))
         speedtimeronscreen = font.render(speedtimerforscreen, True, (150, 255, 100))
 
-        # flashes settings, shield settings
-
+        # flash settings
         if random.randint(300, 1000) < flashtimer:
             flashes.append(Powerup(random.randint(-20, 1350), -100, "flash.png", 100, 100))
             flashtimer = 0
 
         if ufo.speed > 15:
-            window.blit(speedtimeronscreen, (1300, 90))
+            window.blit(speedtimeronscreen, (1000, 90))
             speedtimer -= 1
     
-
         for flash in flashes[:]:
             if ufo.position.colliderect(flash.position):
                 ufo.speed = 35
@@ -275,36 +287,21 @@ while running:
             
         for j in range(len(meteors)):
             if ufo.position.colliderect(meteors[j].position):
-                gameover = True
-            
-        if gameover == True:
+                state = "gameover"
+
+        if state == "gameover": 
             if score > highscore:
                 highscore = score
+            with open("highscore.txt", "w") as file:
+                file.write(str(highscore))
             window.blit(gameoverImage, (0, 0))
             #window.blit(unlocked, (10, 500))
-            window.blit(endofgame, (530, 770))
+            window.blit(endofgame, (370, 600))
             window.blit(randomfact, (10, 10))
             window.blit(scr, (10, 70))
             window.blit(highscr, (10, 110))
-
-            
             score -= 1
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_r]:
-                meteors = []
-                flashes = []
-                ufo.speed = 15
-                gameover = False
-                spawntimer = 0
-                leveltimer = 0
-                meteor_speed = 5
-                ufo.position.x = 1000
-                ufo.position.y = 900
-                score = 0
-                score += 1
-                ufo.speed = 15
-                speedtimer = 500
-                
+
                 #if factnumber < 8:
                     #facts.remove(current_fact)
 
