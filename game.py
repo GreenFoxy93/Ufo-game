@@ -59,7 +59,6 @@ flashtimer = 0
 protectiontimer = 300
 speedtimer = 600
 current_fact = random.choice(facts)
-#facts.remove(current_fact)
 score = 0
 factnumber = 1
 pressr = "Press 'r' to restart"
@@ -187,6 +186,7 @@ while running:
                 score = 0
                 
             if state == "gameover" and event.key == pygame.K_r:
+                #facts.remove(current_fact)
                 state = "game"
                 meteors = []
                 flashes = []
@@ -223,10 +223,14 @@ while running:
         shieldtimer += 1
         meteor_speed += 0.004
         score += 1
-        randomfact = font.render(current_fact, True, (255, 155, 155))
+        ufo.protection = False
+        randomfact = font.render(current_fact, True, (255, 100, 50))
         speedtimerforscreen = f"Speed time left: {speedtimer}"
         protectiontimerforscreen = f"Protection time left: {protectiontimer}"
-        factsunlocked = f"Facts unlocked: {factnumber}/8"
+        if factnumber >= 8:
+            factsunlocked = "You unlocked all facts!"
+        else:
+            factsunlocked = f"Facts unlocked: {factnumber}/8"
         scoreboard = f"Score: {score}"
         highscoreboard = f"Highscore: {highscore}"
         size = random.randint(30, 150)
@@ -277,7 +281,7 @@ while running:
         window.blit(scr, (1000, 10))
         highscr = font.render(highscoreboard, True, (255, 255, 255))
         window.blit(highscr, (1000, 50))
-        unlocked = font.render(factsunlocked, True, (255, 255, 255))
+        unlocked = font.render(factsunlocked, True, (255, 150, 50))
         speedtimeronscreen = font.render(speedtimerforscreen, True, (250, 250, 150))
         protectiontimeronscreen = font.render(protectiontimerforscreen, True, (150, 250, 250))
 
@@ -328,7 +332,7 @@ while running:
             
         for meteor in meteors:
             if ufo.position.colliderect(meteor.position):
-                if protectiontimer > 0:
+                if ufo.protection:
                     pass
                 else:
                     state = "gameover"
@@ -339,19 +343,27 @@ while running:
             with open("highscore.txt", "w") as file:
                 file.write(str(highscore))
             window.blit(gameoverImage, (0, 0))
-            #window.blit(unlocked, (10, 500))
             window.blit(endofgame, (370, 600))
-            window.blit(randomfact, (10, 10))
-            window.blit(scr, (10, 70))
-            window.blit(highscr, (10, 110))
-            score -= 1
+            if factnumber == 8:
+                window.blit(scr, (10, 70))#10
+                window.blit(highscr, (10, 100))#50
+                window.blit(unlocked, (10, 10))#90
+            else:
+                window.blit(scr, (10, 130)) #70
+                window.blit(highscr, (10, 170))#110
+                window.blit(unlocked, (10, 70)) #150
 
-                #if factnumber < 8:
-                    #facts.remove(current_fact)
+            if factnumber < 8:
+                window.blit(randomfact, (10, 10))
 
-                #if factnumber > 8:
-                    #factsunlocked == "You unlocked all facts!"
-                #factnumber += 1
+            if factnumber < 8:
+                facts.remove(current_fact)
+                factnumber += 1
+
+            
+            
+
+                
     pygame.display.update()
     clock.tick(60)
  
