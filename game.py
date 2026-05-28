@@ -17,7 +17,6 @@ font3 = pygame.font.SysFont(None, 90) #score
 font4 = pygame.font.SysFont('arial', 150) #start
 font5 = pygame.font.SysFont(None, 60) #start
 
-
 #loading images
 gameoverImage = pygame.image.load("gameover.png")
 gameoverImage = pygame.transform.scale(gameoverImage, (windowWidth, windowHeight))
@@ -53,7 +52,6 @@ facts = [
     ]
 
 state = "menu"
-
 meteor_speed = 5
 spawntimer = 0
 forfun = 0
@@ -82,7 +80,6 @@ endofgame = font3.render(pressr, True, (150, 255, 255))
 theufogame = font4.render(gametitle, True, (200, 200, 255))
 enterpress = font3.render(pressenter, True, (0, 200, 255))
 controlsbutton = font5.render(controls, True, (255, 255, 255))
-
 
 class Player:
     def __init__(self, x, y, image, up, left, right, width, height, speed):
@@ -181,6 +178,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if state == "menu" and event.key == pygame.K_SPACE:
                 state = "game"
+                current_fact = random.choice(facts)
 
             if event.key == pygame.K_ESCAPE:
                 state = "menu"
@@ -211,6 +209,7 @@ while running:
                 score = 0
                 speedtimer = 500
                 protectiontimer = 0
+                current_fact = random.choice(facts)
 
     if state == "controls":
         window.blit(startImage, (0, 0))
